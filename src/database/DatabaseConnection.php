@@ -19,6 +19,11 @@ final class DatabaseConnection
                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
                 PDO::ATTR_EMULATE_PREPARES   => false,
             ]);
+            // Samakan zona waktu MySQL dengan PHP (dipakai untuk batas waktu bayar)
+            $offset = (string)($c['offset_mysql'] ?? '+07:00');
+            if (preg_match('/^[+-]\d{2}:\d{2}$/', $offset)) {
+                self::$conn->exec("SET time_zone = '$offset'");
+            }
         }
         return self::$conn;
     }

@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 class PembayaranQRIS extends Pembayaran
 {
+    public function getMetode(): string { return 'qris'; }
+
     private string $kodeTransaksi = '';
 
     public function setKodeTransaksi(string $kode): void { $this->kodeTransaksi = $kode; }

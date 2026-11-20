@@ -67,13 +67,15 @@ view_header('Keranjang', $meja);
   </section>
 
   <div class="aksi-bawah">
-    <button class="btn btn-utama" type="button" disabled title="Tersedia di pengerjaan minggu 2">Checkout</button>
+    <form method="post" action="checkout.php">
+      <button class="btn btn-utama" type="submit">Checkout dan bayar</button>
+    </form>
     <form method="post" action="aksi_keranjang.php">
       <input type="hidden" name="aksi" value="kosongkan">
       <input type="hidden" name="kembali" value="keranjang">
       <button class="btn btn-bahaya" type="submit">Kosongkan keranjang</button>
     </form>
   </div>
-  <p class="catatan-kecil">Checkout dan pembayaran dibuat di minggu 2.</p>
+  <p class="catatan-kecil">Pesanan baru diteruskan ke dapur setelah pembayaran lunas.</p>
 <?php endif; ?>
 <?php view_footer();

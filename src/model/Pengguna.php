@@ -25,6 +25,9 @@ abstract class Pengguna
 
     abstract public function getRole(): string;
 
-    /** Fitur dashboard yang tampil sesuai peran (polymorphism). */
+    /**
+     * Fitur dashboard sesuai peran (polymorphism).
+     * @return array<string, string> label fitur => halaman tujuan
+     */
     abstract public function tampilkanDashboard(): array;
 }

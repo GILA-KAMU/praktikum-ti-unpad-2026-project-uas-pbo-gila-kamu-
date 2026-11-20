@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 class PembayaranTunai extends Pembayaran
 {
+    public function getMetode(): string { return 'tunai'; }
+
     private float $uangDiterima = 0.0;
 
     public function setUangDiterima(float $uang): void { $this->uangDiterima = $uang; }

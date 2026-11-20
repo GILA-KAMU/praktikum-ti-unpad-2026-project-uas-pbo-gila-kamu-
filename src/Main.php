@@ -15,11 +15,21 @@ spl_autoload_register(function (string $class): void {
     }
 });
 
+date_default_timezone_set((string)(config('zona_waktu') ?: 'Asia/Jakarta'));
+
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
 // ---------- Fungsi bantu umum ----------
+/** Baca nilai dari config.php. */
+function config(string $kunci): mixed
+{
+    static $c = null;
+    $c ??= require __DIR__ . '/../config.php';
+    return $c[$kunci] ?? null;
+}
+
 function e(?string $teks): string
 {
     return htmlspecialchars((string)$teks, ENT_QUOTES, 'UTF-8');
@@ -51,12 +61,12 @@ function meja_aktif(): ?Meja
     if (isset($_GET['meja'], $_GET['token'])) {
         $meja = (new MejaDAO())->findByNomorDanToken((int)$_GET['meja'], (string)$_GET['token']);
         if ($meja === null) {
-            unset($_SESSION['meja'], $_SESSION['keranjang']);
+            unset($_SESSION['meja'], $_SESSION['keranjang'], $_SESSION['pesanan_ids']);
             return null;
         }
         // Ganti meja = keranjang lama dibuang
         if (($_SESSION['meja']['nomor'] ?? null) !== $meja->getNomorMeja()) {
-            unset($_SESSION['keranjang'], $_SESSION['info_pesanan']);
+            unset($_SESSION['keranjang'], $_SESSION['info_pesanan'], $_SESSION['pesanan_ids']);
         }
         $_SESSION['meja'] = ['nomor' => $meja->getNomorMeja(), 'token' => $meja->getTokenQr()];
         return $meja;
@@ -117,4 +127,65 @@ function wajib_login(): array
         redirect('login.php');
     }
     return $_SESSION['pegawai'];
+}
+
+/** Wajib login dengan salah satu peran, jika tidak kembali ke dashboard. */
+function wajib_role(string ...$roles): array
+{
+    $pegawai = wajib_login();
+    if (!in_array($pegawai['role'], $roles, true)) {
+        flash('err', 'Anda tidak punya akses ke halaman itu.');
+        redirect('dashboard.php');
+    }
+    return $pegawai;
+}
+
+/** Objek Admin atau Kasir sesuai pegawai yang login (polymorphism). */
+function pegawai_objek(): Pengguna
+{
+    $p = wajib_login();
+    $kelas = $p['role'] === 'admin' ? Admin::class : Kasir::class;
+    return new $kelas((int)$p['id'], $p['nama'], '', '');
+}
+
+// ---------- Pesanan pelanggan ----------
+/** Pesanan hanya boleh dibuka oleh sesi yang membuatnya. */
+function pesanan_sesi(int $id): ?Pesanan
+{
+    if (!in_array($id, $_SESSION['pesanan_ids'] ?? [], true)) {
+        return null;
+    }
+    return (new PesananDAO())->findById($id);
+}
+
+function label_status(string $status): string
+{
+    return [
+        'menunggu_pembayaran' => 'Menunggu pembayaran',
+        'dibayar'   => 'Dibayar',
+        'diproses'  => 'Diproses',
+        'disajikan' => 'Disajikan',
+        'selesai'   => 'Selesai',
+        'dibatalkan' => 'Dibatalkan',
+    ][$status] ?? $status;
+}
+
+// ---------- QR code ----------
+/** Alamat dasar aplikasi untuk isi QR (config 'base_url' menimpa deteksi otomatis). */
+function base_url(): string
+{
+    $c = config('base_url');
+    if (is_string($c) && $c !== '') {
+        return rtrim($c, '/');
+    }
+    $skema = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+    $path = preg_replace('#/src/view/[^/]+$#', '', $_SERVER['SCRIPT_NAME'] ?? '');
+    return $skema . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . $path;
+}
+
+/** Gambar QR dibuat oleh layanan api.qrserver.com (butuh internet). */
+function qr_gambar(string $isi, int $ukuran = 220): string
+{
+    return 'https://api.qrserver.com/v1/create-qr-code/?size=' . $ukuran . 'x' . $ukuran
+         . '&data=' . rawurlencode($isi);
 }

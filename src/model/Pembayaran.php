@@ -12,6 +12,10 @@ abstract class Pembayaran
     /** Tiap metode bayar punya cara verifikasi sendiri (polymorphism). */
     abstract public function prosesPembayaran(): bool;
 
+    /** 'tunai' atau 'qris'. */
+    abstract public function getMetode(): string;
+
+    public function getIdPembayaran(): int { return $this->idPembayaran; }
     public function getStatusBayar(): string { return $this->statusBayar; }
     public function getJumlahBayar(): float { return $this->jumlahBayar; }
 }

@@ -59,4 +59,17 @@ class MenuDAO
         $st = $this->db->prepare('DELETE FROM menu WHERE id_menu = ?');
         return $st->execute([$id]);
     }
+
+    /** @return array<int, array{id_kategori:int|string, nama_kategori:string}> */
+    public function findKategori(): array
+    {
+        return $this->db->query('SELECT * FROM kategori ORDER BY id_kategori')->fetchAll();
+    }
+
+    public function insertKategori(string $nama): int
+    {
+        $st = $this->db->prepare('INSERT INTO kategori (nama_kategori) VALUES (?)');
+        $st->execute([$nama]);
+        return (int)$this->db->lastInsertId();
+    }
 }

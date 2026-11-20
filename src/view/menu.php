@@ -19,6 +19,9 @@ $keranjang = keranjang_ambil();
 
 view_header('Menu', $meja);
 ?>
+<?php if (!empty($_SESSION['pesanan_ids'])): ?>
+  <a class="tautan-status" href="status.php">Lihat status pesanan Anda</a>
+<?php endif; ?>
 <h1 class="judul">Mau makan apa?</h1>
 
 <?php foreach ($perKategori as $kategori => $items): ?>
