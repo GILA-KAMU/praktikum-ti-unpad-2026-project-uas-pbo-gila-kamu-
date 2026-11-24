@@ -5,7 +5,7 @@ CREATE DATABASE IF NOT EXISTS db_nasi_daun_jeruk
   CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE db_nasi_daun_jeruk;
 
-DROP TABLE IF EXISTS pembayaran;
+DROP TABLE IF EXISTS pembayaran;   -- tabel lama (fitur bayar sudah dihapus)
 DROP TABLE IF EXISTS detail_pesanan;
 DROP TABLE IF EXISTS pesanan;
 DROP TABLE IF EXISTS menu;
@@ -52,8 +52,7 @@ CREATE TABLE pesanan (
   catatan        TEXT,
   waktu_pesan    DATETIME DEFAULT CURRENT_TIMESTAMP,
   total_harga    DECIMAL(12,2),
-  status ENUM('menunggu_pembayaran','dibayar','diproses','disajikan','selesai','dibatalkan')
-         NOT NULL DEFAULT 'menunggu_pembayaran',
+  status ENUM('masuk','diproses','disajikan','selesai') NOT NULL DEFAULT 'masuk',
   FOREIGN KEY (id_meja) REFERENCES meja(id_meja)
 );
 
@@ -66,18 +65,6 @@ CREATE TABLE detail_pesanan (
   catatan_item VARCHAR(255),
   FOREIGN KEY (id_pesanan) REFERENCES pesanan(id_pesanan) ON DELETE CASCADE,
   FOREIGN KEY (id_menu)    REFERENCES menu(id_menu)
-);
-
-CREATE TABLE pembayaran (
-  id_pembayaran INT AUTO_INCREMENT PRIMARY KEY,
-  id_pesanan    INT NOT NULL,
-  id_pengguna   INT NULL,                      -- kasir verifikator, NULL jika QRIS otomatis
-  metode        ENUM('tunai','qris'),
-  jumlah_bayar  DECIMAL(12,2),
-  waktu_bayar   DATETIME,
-  status_bayar  ENUM('belum','lunas') NOT NULL DEFAULT 'belum',
-  FOREIGN KEY (id_pesanan)  REFERENCES pesanan(id_pesanan) ON DELETE CASCADE,
-  FOREIGN KEY (id_pengguna) REFERENCES pengguna(id_pengguna)
 );
 
 -- ===== DATA AWAL =====
